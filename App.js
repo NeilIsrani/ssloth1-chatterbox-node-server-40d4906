@@ -8,8 +8,9 @@ import UserRoutes from './Users/routes.js';
 import TopicRoutes from './Topics/routes.js';
 import PostRoutes from './Posts/routes.js';
 import CommentRoutes from './Comments/routes.js';
+import HoroscopeRoutes from './Horoscope/routes.js';
 
-const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING || "mongodb://127.0.0.1:27017/kanbas";
+const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING || "mongodb://127.0.0.1:27017/chatterbox";
 
 // Connect to MongoDB
 mongoose.connect(CONNECTION_STRING, {
@@ -26,12 +27,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // CORS middleware
+const allowedOrigins = [
+	'http://localhost:3000', // Development URL
+	'https://chatterbox-react-app.netlify.app', // Production URL
+];
+
 app.use(
 	cors({
 		credentials: true,
 		origin: (origin, callback) => {
-			console.log("Origin:", origin);
-			callback(null, process.env.NETLIFY_URL || "http://localhost:3000");
+			// Allow requests with no origin (Postman)
+			if (!origin) return callback(null, true);
+			if (allowedOrigins.includes(origin)) {
+				callback(null, true);
+			} else {
+				callback(new Error('Not allowed by CORS'));
+			}
 		}
 	})
 );
@@ -47,8 +58,8 @@ if (process.env.NODE_ENV !== "development") {
 	sessionOptions.proxy = true;
 	sessionOptions.cookie = {
 		sameSite: "none",
-		secure: true,
-		domain: process.env.NODE_SERVER_DOMAIN,
+		secure: true, // Ensure cookies are sent over HTTPS
+		domain: process.env.NODE_SERVER_DOMAIN, // Set the cookie domain for production
 	};
 }
 
@@ -63,10 +74,12 @@ app.use((req, res, next) => {
 // Import routes
 Test(app);
 UserRoutes(app);
-
 TopicRoutes(app);
 PostRoutes(app);
 CommentRoutes(app);
+
+// for our external api requirement for the project
+app.use('/api/horoscope', HoroscopeRoutes);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}!`));

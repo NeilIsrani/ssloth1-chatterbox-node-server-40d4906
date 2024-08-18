@@ -1,10 +1,22 @@
 import model from "./model.js";
+import { v4 as uuidv4 } from "uuid";
 
 
 export const createUser = (user) => {
 	delete user._id
 	return model.create(user);
 }
+
+export const createAnonymousUser = () => {
+	const guestUser = {
+		username: `Guest-${uuidv4()}`,
+		password: "password",
+		role: "GUEST",
+		isGuest: true,
+	};
+
+	return model.create(guestUser);
+};
 
 export const findUsersByPartialName = (partialName) => {
 	const regex = new RegExp(partialName, "i");
@@ -27,6 +39,7 @@ export const findUserByCredentials = async (identifier, password) => {
 
 	return null;
 };
+
 
 export const findAllUsers = () => model.find();
 export const findUserById = (userId) => model.findById(userId);

@@ -119,4 +119,18 @@ export default function UserRoutes(app) {
 		}
 	};
 	app.post("/api/users/profile", profile);
+
+
+	// create an anonymous user
+	const createAnonymousUser = async (req, res) => {
+		try {
+			const guestUser = await dao.createAnonymousUser();
+			req.session["currentUser"] = guestUser;
+			res.json(guestUser);
+		} catch (err) {
+			console.error("Error creating anonymous user:", err);
+			res.sendStatus(500);
+		}
+	};
+	app.post("/api/users/anonymous", createAnonymousUser);
 }

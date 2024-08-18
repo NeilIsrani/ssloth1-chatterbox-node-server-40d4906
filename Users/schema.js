@@ -5,12 +5,14 @@ const userSchema = new mongoose.Schema({
 	password: { type: String, required: true },
 	firstName: String,
 	lastName: String,
-	email: { type: String, required: true, unique: true },
+
+	// made this non-required so we can have anonymous users
+	email: { type: String, unique: true, sparse: true },
 	phone: String,
 	dob: Date,
 	role: {
 		type: String,
-		enum: ["STAFF", "USER", "MODERATOR"],
+		enum: ["STAFF", "USER", "MODERATOR", "GUEST"],
 		default: "USER",
 	},
 }, { collection: "users" });
