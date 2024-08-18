@@ -1,6 +1,6 @@
 import * as dao from './dao.js';
 
-let currentUser = null;
+//let currentUser = null;
 
 export default function UserRoutes(app) {
 
@@ -23,22 +23,23 @@ export default function UserRoutes(app) {
 
 	// find all users
 	const findAllUsers = async (req, res) => {
-		const { role } = req.query;
-		if (role) {
-			const users = await dao.findUsersByRole(role);
-			//console.log("UserRoutes.findAllUsers: users:", users);
+		try {
+			const { name } = req.query;
+			let users;
+	
+			if (name) {
+				users = await dao.findUsersByPartialName(name);
+			} else {
+				users = await dao.findAllUsers();
+			}
+	
 			res.json(users);
-			return;
+		} catch (error) {
+			console.error('Error in findAllUsers:', error);
+			res.status(500).json({ error: 'An error occurred while fetching users' });
 		}
-		if (name) {
-			const users = await dao.findUsersByPartialName(name);
-			//console.log("UserRoutes.findAllUsers: users:", users);
-			res.json(users);
-			return;
-		}
-		const users = await dao.findAllUsers();
-		res.json(users);
 	};
+	
 	app.get("/api/users", findAllUsers);
 
 	// find user by id
@@ -93,13 +94,21 @@ export default function UserRoutes(app) {
 
 	// profile, get the current user profile/details
 	const profile = async (req, res) => {
-		const sessionUser = req.session["currentUser"];
-		if (!sessionUser) {
-			return res.sendStatus(401);
-		}
+		// const sessionUser = req.session["currentUser"];
+		// if (!sessionUser) {
+		// 	return res.sendStatus(401);
+		// }
 
 		try {
-			const user = await dao.findUserById(sessionUser._id);
+			const userId = req.body.userId; // Get userId from query parameter
+		
+			let user;
+			if (userId) {
+			  // Fetch user by ID if userId is provided
+			   user = await dao.findUserById(userId);
+			} else {
+			   user = await dao.findUserById('66c02f502fce83791ce2d389');
+			}
 			if (!user) {
 				return res.sendStatus(404);
 			}
